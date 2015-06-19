@@ -1,5 +1,6 @@
-describe("ModuleLoader", function() {
-    var loader;
+describe("ModuleLoader With Namespace", function() {
+    "use strict";
+    var loader, loadedModule;
 
     beforeEach(function() {
         loader = new ModuleLoader("TestNamespace");
@@ -7,28 +8,6 @@ describe("ModuleLoader", function() {
 
     afterEach(function() {
         delete window["TestNamespace"];
-    });
-
-    it("should be able to load a module into a namespace", function() {
-        var testModule = {
-            TestSubmodule: {
-                thing: ""
-            }
-        }
-        loadedModule = loader.loadModuleIntoNamespace(["TestModule"], testModule);
-        expect(loadedModule.hasOwnProperty("TestModule")).toBe(true);
-        expect(loadedModule.TestModule).toBe(testModule);
-    });
-
-    it("should be able to load a module into a nested namespace", function() {
-        var testModule = {
-            TestSubmodule: {
-                thing: ""
-            }
-        }
-        loadedModule = loader.loadModuleIntoNamespace(["TestModule", "Nesting1", "Nesting2"], testModule);
-        expect(loadedModule.hasOwnProperty("TestModule")).toBe(true);
-        expect(loadedModule.TestModule.Nesting1.Nesting2).toBe(testModule);
     });
 
     it("should be able to load modules", function() {
@@ -77,8 +56,9 @@ describe("ModuleLoader", function() {
             expectedTrueCall: function() {
                 return true;
             }
-        }
+        };
 
+        //Test module definition
         loader.define('Test', ['globalExport'], function(glbExport) {
             return {
                 exportedFunction: function() {

@@ -19,11 +19,15 @@
         this.name = "ModulesNotFound";
         this.message = mesage;
     }
+    ModulesNotFound.prototype = new Error();
+    ModulesNotFound.prototype.constructor = ModulesNotFound;
 
     function ModuleDefinitionMissing(mesage) {
         this.name = "ModulesNotFound";
         this.message = mesage;
     }
+    ModuleDefinitionMissing.prototype = new Error();
+    ModuleDefinitionMissing.prototype.constructor = ModuleDefinitionMissing;
 
     var ModuleLoader = function(globalExportName) {
         this.initialize.apply(this, arguments);
@@ -32,9 +36,12 @@
     ModuleLoader.prototype = {
         initialize: function(globalExportName) {
             this.globalExportName = globalExportName;
+            this.useGlobalExportNamespace = !!this.globalExportName;
             this.moduleList = [];
-            //Begin constructing a global loader
-            root[this.globalExportName] = root[this.globalExportName] || {};
+            if(this.useGlobalExportNamespace){
+                //Begin constructing a global loader
+                root[this.globalExportName] = root[this.globalExportName] || {};
+            }
         },
         loadModules: function(callback) {
             var moduleLoadList = this.moduleList.slice(),
@@ -115,10 +122,18 @@
                 if(!constructedModule) {
                     throw new ModuleDefinitionMissing("Missing module export for " + mod.name);
                 }
-                if(!root[this.globalExportName].hasOwnProperty(namespace[0])) {
-                    root[this.globalExportName][namespace[0]] = {};
+                if(this.useGlobalExportNamespace) {
+                    //Test for existence of a module that has already been loaded into that namespace or do we need
+                    //to construct a new
+                    if(!root[this.globalExportName].hasOwnProperty(namespace[0])) {
+                        root[this.globalExportName][namespace[0]] = {};
+                    }
+                } else {
+                    if(!root.hasOwnProperty(namespace[0])) {
+                        root[namespace[0]] = {};
+                    }
                 }
-                _.merge(root[this.globalExportName], this.loadModuleIntoNamespace(namespace, mod.factory.apply(root, deps)));
+                _.merge(this.useGlobalExportNamespace ?  root[this.globalExportName] : root, this.loadModuleIntoNamespace(namespace, mod.factory.apply(root, deps)));
                 return true;
             } else {
                 return false;

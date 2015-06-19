@@ -57,9 +57,9 @@
     }
 }(this, function(ModuleLoader) {
     // Constructs the MosDef module loading instance
-    // This will export a MosDef to the global namespace with
-    // an instance of a `ModuleLoader` initialized with the "MosDef" namespace
-    var MosModuleLoader = new ModuleLoader("MosDef");
+    // This will export all of the loaded libraries into the global namespace.
+    // This is essentially a convenience wrapper to not have to construct a ModuleLoader
+    var MosModuleLoader = new ModuleLoader();
     return {
         MosDef: {
             ModuleLoader: MosModuleLoader
