@@ -65,5 +65,5 @@
             ModuleLoader: MosModuleLoader
         },
         mosDef: ModuleLoader.prototype.define.bind(MosModuleLoader)
-    }
+    };
 }));

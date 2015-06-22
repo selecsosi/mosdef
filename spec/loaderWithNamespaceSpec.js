@@ -7,7 +7,7 @@ describe("ModuleLoader With Namespace", function() {
     });
 
     afterEach(function() {
-        delete window["TestNamespace"];
+        delete window.TestNamespace;
     });
 
     it("should be able to load modules", function() {
@@ -52,7 +52,7 @@ describe("ModuleLoader With Namespace", function() {
     });
 
     it("should be able to load modules with global dependencies", function() {
-        window["globalExport"] = {
+        window.globalExport = {
             expectedTrueCall: function() {
                 return true;
             }

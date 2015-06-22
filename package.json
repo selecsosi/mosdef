@@ -1,21 +1,23 @@
 {
   "name": "mosdef",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "repository": {},
   "scripts": {
     "test": "grunt"
   },
-  "description": "Module Defition - Synchronous javascript module loader ",
+  "description": "Module Defition - Synchronous javascript module loader",
   "author": "Samuel Lahti",
+  "readmeFilename": "README.md",
   "dependencies": {
     "grunt": "0.x.x",
-    "grunt-contrib-jade": "0.8.x",
+    "grunt-contrib-concat": "~0.5.0",
     "grunt-contrib-jshint": "0.6.x",
     "grunt-contrib-stylus": "0.8.x",
     "grunt-contrib-uglify": "0.2.x",
     "grunt-contrib-watch": "0.5.x",
-    "grunt-contrib-jasmine": "0.8.x"
+    "grunt-contrib-jasmine": "0.8.x",
+    "load-grunt-tasks": "~0.2.0"
   },
   "engine": "node >= 0.10"
 }

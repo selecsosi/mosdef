@@ -69,7 +69,7 @@ describe("ModuleLoader", function() {
     });
 
     it("should be able to load modules with global dependencies", function() {
-        window["globalExport"] = {
+        window.globalExport = {
             expectedTrueCall: function() {
                 return true;
             }

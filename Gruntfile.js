@@ -1,5 +1,22 @@
 module.exports = function(grunt) {
+    require('load-grunt-tasks')(grunt);
+
     grunt.initConfig({
+        concat: {
+            dist: {
+                src: [
+                    "src/loader.js",
+                    "src/mosdef.js"
+                ],
+                dest: "mosdef.js"
+            }
+        },
+        jshint: {
+            beforeconcat: 'src/*.js',
+            afterconcat: "mosdef.js",
+            spec: "spec/*.js",
+            options: {}
+        },
         jasmine: {
             pipelines: {
                 src: 'src/**/*.js',
@@ -10,9 +27,17 @@ module.exports = function(grunt) {
                     ]
                 }
             }
+        },
+        uglify: {
+            mosdef: {
+                files: {
+                    'mosdef.min.js': 'mosdef.js'
+                }
+            }
         }
+
+
     });
 
-    grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.registerTask('default', ['less', 'swig']);
+    grunt.registerTask('default', ['concat', 'jshint', 'jasmine', 'uglify'])
 };
