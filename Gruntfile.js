@@ -6,20 +6,19 @@ module.exports = function(grunt) {
             dist: {
                 src: [
                     "src/loader.js",
-                    "src/mosdef.js"
+                    "src/export.js"
                 ],
                 dest: "mosdef.js"
             }
         },
         jshint: {
-            beforeconcat: 'src/*.js',
-            afterconcat: "mosdef.js",
+            mosdef: "mosdef.js",
             spec: "spec/*.js",
             options: {}
         },
         jasmine: {
             pipelines: {
-                src: 'src/**/*.js',
+                src: 'mosdef.js',
                 options: {
                     specs: 'spec/*Spec.js',
                     vendor: [

@@ -1,4 +1,3 @@
-
 /**
  * Exports a mosDef helper method to the global namespace
  * this helper works kind of like a `define` method from require
@@ -46,7 +45,7 @@
         });
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
+        // only CommonJS-like environments that support module.exports,
         // like Node.
         module.exports = factory(require(['ModuleLoader']));
     } else {
