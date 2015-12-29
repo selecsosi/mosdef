@@ -38,10 +38,14 @@ describe("ModuleLoader", function() {
                 }
             };
         });
+
         loader.loadModules(function() {
             expect(window.hasOwnProperty("Test")).toBe(true);
             expect(Test.expectedTrueCall()).toBe(true);
+
         });
+
+        delete window.Test;
     });
 
     it("should be able to load modules with dependencies", function() {
@@ -66,20 +70,23 @@ describe("ModuleLoader", function() {
             expect(window.hasOwnProperty("Other")).toBe(true);
             expect(Other.exportedFunction()).toBe(true);
         });
+
+        delete window.Test;
+        delete window.Other;
     });
 
     it("should be able to load modules with global dependencies", function() {
-        window.globalExport = {
+        window.globalDep = {
             expectedTrueCall: function() {
                 return true;
             }
         };
 
         //Test module definition
-        loader.define('Test', ['globalExport'], function(glbExport) {
+        loader.define('Test', ['globalDep'], function(globalDep) {
             return {
                 exportedFunction: function() {
-                    return glbExport.expectedTrueCall();
+                    return globalDep.expectedTrueCall();
                 }
             };
         });
@@ -88,5 +95,8 @@ describe("ModuleLoader", function() {
             expect(window.hasOwnProperty("Test")).toBe(true);
             expect(Test.exportedFunction()).toBe(true);
         });
+
+        delete window.globalDep;
+        delete window.Test;
     });
 });

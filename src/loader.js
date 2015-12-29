@@ -7,7 +7,7 @@
         });
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
+        // only CommonJS-like environments that support module.exports,
         // like Node.
         module.exports = factory(root, require('_'));
     } else {
@@ -24,30 +24,25 @@
     ModulesNotFound.prototype.constructor = ModulesNotFound;
 
     function ModuleDefinitionMissing(mesage) {
-        this.name = "ModulesNotFound";
+        this.name = "ModuleDefinitionMissing";
         this.message = mesage;
     }
     ModuleDefinitionMissing.prototype = new Error();
     ModuleDefinitionMissing.prototype.constructor = ModuleDefinitionMissing;
 
-    var ModuleLoader = function(globalExportName) {
+    var ModuleLoader = function() {
         this.initialize.apply(this, arguments);
     };
 
     ModuleLoader.prototype = {
-        initialize: function(globalExportName) {
-            this.globalExportName = globalExportName;
-            this.useGlobalExportNamespace = !!this.globalExportName;
+        initialize: function() {
             this.moduleList = [];
-            if(this.useGlobalExportNamespace){
-                //Begin constructing a global loader
-                root[this.globalExportName] = root[this.globalExportName] || {};
-            }
+            this.loadErrorMap = {};
         },
         loadModules: function(callback) {
             var moduleLoadList = this.moduleList.slice(),
                 modulesLoaded = [],
-                modulesDelayed = [], i, result, module, hadSuccessfulLoad;
+                modulesDelayed = [], i, hadSuccessfulLoad;
             while(moduleLoadList.length > 0) {
                 hadSuccessfulLoad = false;
                 for(i = 0; i < moduleLoadList.length; i++) {
@@ -71,11 +66,14 @@
                 for(i = 0; i < modulesDelayed.length; i++) {
                     missingModuleList.push(modulesDelayed[i].name);
                 }
-                throw new ModulesNotFound(missingModuleList.join(","));
+                console.warn("Error loading modules.");
+                console.warn(missingModuleList);
+                console.warn(this.loadErrorMap);
+                throw new ModulesNotFound("Load terminated due to exception");
             }
             if(callback)callback();
         },
-        loadDependency: function(name, global) {
+        loadDependency: function(name) {
             var namespace = name.split(".");
             var loader = function(parent, namespace) {
                 if(namespace.length > 1) {
@@ -86,56 +84,58 @@
                     return null;
                 }
             };
-            if(global) {
-                return loader(root, namespace);
-            } else {
-                return loader(root[this.globalExportName], namespace);
-            }
+            return loader(root, namespace);
         },
         tryLoadDependencies: function(depList) {
-            var factoryDeps = [];
+            var factoryDeps = [],
+                loadError = false,
+                //Use different object to hint at response
+                errorReport = {
+                    exceptions: []
+                };
             for(var i = 0; i < depList.length; i++) {
                 var dep = depList[i],
-                    loadedDependency = null;
+                    loadedDependency = null,
+                    error = null;
+                //Try to load the dependency out of either managed namespaces or
                 try {
                     loadedDependency = this.loadDependency(dep);
-                } catch (e) {}
-
-                if(loadedDependency === null || typeof loadedDependency == "undefined") {
-                    try {
-                        loadedDependency = this.loadDependency(dep, true);
-                    } catch (e) {}
+                } catch (e) {
+                    error = e;
                 }
                 if(loadedDependency === null || typeof loadedDependency == "undefined") {
                     factoryDeps = null;
+                    loadError = true;
+                    if(error) {
+                        errorReport.exceptions.push(error);
+                    } else {
+                        errorReport.exceptions.push("Missing module " + dep);
+                    }
                     break;
                 } else {
                     factoryDeps.push(loadedDependency);
                 }
             }
-            return factoryDeps;
+            return loadError ? errorReport : factoryDeps;
         },
-        tryLoadModule: function(mod, loadedDeps) {
+        tryLoadModule: function(mod) {
             var namespace = mod.name.split("."),
-                deps = this.tryLoadDependencies(mod.deps);
-            if(deps !== null) {
-                var constructedModule = mod.factory.apply(root, deps);
+                depsArrayOrError = this.tryLoadDependencies(mod.deps);
+            //Array denotes successful load
+            if(_.isArray(depsArrayOrError)) {
+                var constructedModule = mod.factory.apply(root, depsArrayOrError);
                 if(!constructedModule) {
                     throw new ModuleDefinitionMissing("Missing module export for " + mod.name);
                 }
-                if(this.useGlobalExportNamespace) {
-                    //Test for existence of a module that has already been loaded into that namespace or do we need
-                    //to construct a new
-                    if(!root[this.globalExportName].hasOwnProperty(namespace[0])) {
-                        root[this.globalExportName][namespace[0]] = {};
-                    }
-                } else {
-                    if(!root.hasOwnProperty(namespace[0])) {
-                        root[namespace[0]] = {};
-                    }
+                if(!root.hasOwnProperty(namespace[0])) {
+                    root[namespace[0]] = {};
                 }
-                _.merge(this.useGlobalExportNamespace ?  root[this.globalExportName] : root, this.loadModuleIntoNamespace(namespace, mod.factory.apply(root, deps)));
+                _.merge(root, this.loadModuleIntoNamespace(namespace, mod.factory.apply(root, depsArrayOrError)));
                 return true;
+            } else if(depsArrayOrError !== null && !_.isArray(depsArrayOrError)) {
+                //Report error for lib
+                this.loadErrorMap[mod.name] = depsArrayOrError;
+                return false;
             } else {
                 return false;
             }
